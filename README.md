@@ -1,6 +1,6 @@
 # Medical Voice AI Agent
 
-Post-consultation scribe, research, and action support (STT, TTS clarifications, agentic actions). FastAPI backend, Postgres, simple static frontend.
+Real-time voice AI assistant for medical consultations, powered by LiveKit and OpenAI Realtime.
 
 ## Run
 
@@ -8,33 +8,31 @@ Post-consultation scribe, research, and action support (STT, TTS clarifications,
 docker compose up --build
 ```
 
-- **API**: http://localhost:8000  
-- **Docs**: http://localhost:8000/docs  
-- **Frontend**: http://localhost:3000  
+- **API**: http://localhost:8000
+- **Docs**: http://localhost:8000/docs
+- **Frontend**: http://localhost:3000
+
+## Setup
+
+1. Create a project at [LiveKit Cloud](https://cloud.livekit.io).
+2. Copy the **URL**, **API Key**, and **API Secret** from Project Settings.
+3. Fill in `backend/.env`:
+   ```
+   LIVEKIT_URL=wss://your-project.livekit.cloud
+   LIVEKIT_API_KEY=your_api_key
+   LIVEKIT_API_SECRET=your_api_secret
+   OPENAI_API_KEY=your_openai_key
+   ```
+4. Run `docker compose up --build`.
 
 ## Project structure
 
 | Path | Purpose |
-|------|--------|
-| `backend/src/main.py` | FastAPI app entry; mounts routers under `/api` |
-| `backend/src/api/` | HTTP routes (v1: health, stt, tts, actions, agent) |
-| `backend/src/schemas/` | Pydantic request/response models |
-| `backend/src/services/` | STT, TTS, actions logic (implement here) |
-| `backend/src/agents/` | Orchestration (orchestrator calls services) |
-| `backend/src/core/` | Config, shared utilities |
-| `frontend/` | Static UI (index.html, main.js); replace with SPA if needed |
-
-## Where to put code
-
-- **New API endpoints** → `backend/src/api/v1/` + schema in `backend/src/schemas/`
-- **STT / transcription** → `backend/src/services/stt.py`
-- **Clarification questions (TTS)** → `backend/src/services/tts.py`
-- **Agentic actions (letters, tests, etc.)** → `backend/src/services/actions.py`
-- **Orchestration / flow** → `backend/src/agents/orchestrator.py`
-- **Frontend** → `frontend/` (keep calling the same `/api/v1/*` endpoints)
-
-## Contributing
-
-1. Pick a module (e.g. services, agents, api, frontend).
-2. Add or change code in the relevant folder; keep request/response contracts in `schemas/` so others can rely on them.
-3. Run with `docker compose up --build` and test via http://localhost:8000/docs or the frontend at http://localhost:3000.
+|------|---------|
+| `backend/src/agents/voice_agent.py` | LiveKit voice agent (OpenAI Realtime + noise cancellation) |
+| `backend/src/integrations/livekit.py` | LiveKit API client and token generation |
+| `backend/src/api/v1/health.py` | Health check endpoint |
+| `backend/src/api/v1/livekit.py` | Token endpoint for frontend to join rooms |
+| `backend/src/core/config.py` | Settings loaded from `.env` |
+| `backend/src/main.py` | FastAPI app entry |
+| `frontend/` | Frontend UI |
