@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dawn · Medical Assistant</title>
+    <meta name="description" content="Dawn — a sleek consultation assistant UI" />
+    <style>
+      :root{
+        --bg:#0b1220; --card:#0f1724; --muted:#9aa4b2; --accent:#7c5cff; --glass: rgba(255,255,255,0.04);
+        --radius:14px; --gap:18px; --max:1100px;
+      }
+      html,body{height:100%;}
+      body{
+        margin:0; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+        background:linear-gradient(180deg,#061021 0%, #071428 60%); color:#e6eef6; display:flex; align-items:center; justify-content:center; padding:32px;
+      }
+      .app{width:100%; max-width:var(--max); display:grid; grid-template-columns: 1fr 420px; gap:var(--gap);}
+      header{grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; margin-bottom:6px}
+      .logo{display:flex; align-items:center; gap:12px}
+      .logo .mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#33c3ff);display:flex;align-items:center;justify-content:center;font-weight:700}
+      h1{margin:0;font-size:18px}
+      p.lead{margin:0;color:var(--muted);font-size:13px}
+
+      .card{background:linear-gradient(180deg,var(--card), #0b1320); border-radius:var(--radius); padding:18px; box-shadow: 0 10px 30px rgba(2,6,23,0.6); border:1px solid rgba(255,255,255,0.03)}
+
+      /* Left: Chat */
+      .chat{display:flex; flex-direction:column; height:76vh}
+      .messages{flex:1; overflow:auto; padding:12px; display:flex; flex-direction:column; gap:10px}
+      .msg{max-width:78%; padding:10px 12px; border-radius:12px; line-height:1.35}
+      .msg.agent{align-self:flex-start; background:linear-gradient(90deg,rgba(124,92,255,0.12), rgba(51,195,255,0.06)); border:1px solid rgba(124,92,255,0.16); color:#eaf0ff}
+      .msg.doc{align-self:flex-end; background:linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.04); color:var(--muted)}
+      .composer{display:flex; gap:10px; margin-top:12px}
+      .composer textarea{flex:1; min-height:56px; border-radius:10px; padding:12px; background:var(--glass); border:1px solid rgba(255,255,255,0.03); color:inherit}
+      .btn{background:var(--accent); color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer}
+
+      /* Right: Subtitles / Transcript */
+      .subs{height:76vh; display:flex; flex-direction:column}
+      .subs .panel{flex:1; overflow:auto; padding:12px; background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent); border-radius:10px}
+      .subtitle{padding:8px 10px; margin-bottom:8px; border-radius:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.02);}
+      .subtitle .meta{font-size:12px; color:var(--muted); margin-bottom:6px}
+      .subtitle .text{font-size:14px}
+
+      footer{grid-column:1/-1; margin-top:8px; color:var(--muted); font-size:12px; text-align:center}
+
+      @media (max-width:980px){.app{grid-template-columns:1fr;}.subs{order:2}.chat{order:1}}
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header>
+        <div class="logo">
+          <div class="mark">D</div>
+          <div>
+            <h1>Dawn</h1>
+            <p class="lead">Consultation assistant — transcript subtitles and chat</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn" id="startBtn">Start Consultation</button>
+        </div>
+      </header>
+
+      <div class="card chat">
+        <div id="messages" class="messages"></div>
+
+        <div class="composer">
+          <textarea id="input" placeholder="Type a message as the clinician (or paste confirmed next steps)…"></textarea>
+          <button class="btn" id="sendBtn">Send</button>
+        </div>
+      </div>
+
+      <div class="card subs">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <strong>Live Subtitles</strong>
+          <small style="color:var(--muted)">Transcript stream</small>
+        </div>
+        <div class="panel" id="subtitles"></div>
+      </div>
+
+      <footer>© Dawn • Built for clinic workflows</footer>
+    </div>
+
+    <script>
+      const API_BASE = 'http://localhost:8000/api/v1';
+      const messagesEl = document.getElementById('messages');
+      const subsEl = document.getElementById('subtitles');
+      const inputEl = document.getElementById('input');
+      const sendBtn = document.getElementById('sendBtn');
+      const startBtn = document.getElementById('startBtn');
+
+      function pushMessage(author, text){
+        const div = document.createElement('div');
+        div.className = 'msg ' + (author==='agent' ? 'agent' : 'doc');
+        div.innerHTML = `<div style="font-size:12px;color:var(--muted)">${author}</div><div style="margin-top:6px">${escapeHtml(text)}</div>`;
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      function pushSubtitle(who, text){
+        const box = document.createElement('div');
+        box.className = 'subtitle';
+        box.innerHTML = `<div class="meta">${who} • ${new Date().toLocaleTimeString()}</div><div class="text">${escapeHtml(text)}</div>`;
+        subsEl.appendChild(box);
+        subsEl.scrollTop = subsEl.scrollHeight;
+      }
+
+      function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+
+      async function startConsultation(){
+        pushMessage('agent','Preparing transcription and summary...');
+        try{
+          const res = await fetch(`${API_BASE}/consultation/start`,{method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({bypass_next_steps_prompt:false})});
+          if(!res.ok) throw new Error('Failed to start');
+          const data = await res.json();
+          pushMessage('agent','Summary prompt generated — ask the clinician for next steps.');
+          pushSubtitle('Transcription', data.transcription);
+          pushSubtitle('Dawn', data.next_steps_prompt);
+        }catch(e){ pushMessage('agent','Error starting consultation: '+e.message); }
+      }
+
+      async function draftLetter(doctorNextSteps){
+        pushMessage('agent','Drafting letter…');
+        try{
+          const res = await fetch(`${API_BASE}/consultation/draft-letter`,{method:'POST',headers:{'Content-Type':'application/json'}, body: JSON.stringify({doctor_next_steps:doctorNextSteps, patient_name:'Patient', consultant_name:'Dr. [You]'})});
+          if(!res.ok) throw new Error('Failed to draft');
+          const data = await res.json();
+          pushMessage('agent','Letter drafted — check transcript panel or copy from chat.');
+          pushSubtitle('Letter', data.letter);
+        }catch(e){ pushMessage('agent','Error drafting letter: '+e.message); }
+      }
+
+      startBtn.addEventListener('click', startConsultation);
+      sendBtn.addEventListener('click', ()=>{
+        const v = inputEl.value.trim(); if(!v) return; pushMessage('doc',v); pushSubtitle('Clinician',v); inputEl.value=''; draftLetter(v);
+      });
+
+      pushMessage('agent','Welcome to Dawn — click Start Consultation to load transcription.');
+    </script>
+  </body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Medical Voice AI Agent</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #0f172a;
+        color: #e5e7eb;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
+      .container {
+        max-width: 960px;
+        width: 100%;
+        padding: 2rem;
+      }
+
+      .card {
+        background: #020617;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+      }
+
+      h1 {
+        margin-top: 0;
+        font-size: 1.8rem;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 140px;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        padding: 0.75rem;
+        background: #020617;
+        color: #e5e7eb;
+        resize: vertical;
+      }
+
+      button {
+        background: linear-gradient(to right, #38bdf8, #6366f1);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .panel {
+        background: #020617;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        padding: 0.75rem 0.9rem;
+        font-size: 0.85rem;
+      }
+
+      .panel h2 {
+        margin-top: 0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #9ca3af;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>Medical Voice AI Agent – Playground</h1>
+        <p style="color: #9ca3af; font-size: 0.9rem">
+          Minimal UI to test the backend agent orchestration. Paste consultation
+          text and run the pipeline.
+        </p>
+
+        <div style="display: grid; grid-template-columns: 1fr 420px; gap: 1rem; margin-top: 1rem;">
+          <div class="panel" style="display:flex; flex-direction:column; gap:0.75rem;">
+            <h2>Agent</h2>
+            <div id="chat" style="flex:1; overflow:auto; max-height:420px; padding:0.5rem; background:#020617; border-radius:0.5rem; border:1px solid rgba(148,163,184,0.06);"></div>
+
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <input id="transcript-file" placeholder="transcript filename (in backend/output)" style="flex:1; padding:0.5rem; border-radius:0.5rem; background:#07102a; border:1px solid rgba(148,163,184,0.1); color:#e5e7eb;" value="sample_transcript.txt" />
+              <button id="start-consult">Start Consultation</button>
+              <button id="join-audio">Join Live Audio</button>
+            </div>
+
+            <div id="doctor-input" style="display:none; margin-top:0.5rem;">
+              <textarea id="diagnosis-text" placeholder="Enter your diagnosis and rationale here" style="min-height:80px"></textarea>
+              <div style="display:flex; gap:0.5rem; margin-top:0.5rem;">
+                <button id="send-diagnosis">Send Diagnosis</button>
+                <button id="confirm-care" disabled>Confirm Care Plan</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2>Transcript</h2>
+            <pre id="transcript" style="max-height:520px; overflow:auto;"></pre>
+            <h2 style="margin-top:1rem">Letter / Output</h2>
+            <pre id="letter" style="max-height:220px; overflow:auto;"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./main.js"></script>
+  </body>
+</html>
+
