@@ -6,8 +6,15 @@ class Settings(BaseSettings):
     environment: str = "local"
     database_url: AnyUrl | str
 
+    # LiveKit connection (used by integrations/livekit.py)
+    livekit_url: str = "http://livekit:7880"
+    livekit_api_key: str = "devkey"
+    livekit_api_secret: str = "secret"
+
     class Config:
-        env_file = ".env"
+        # Use .env.local (committed) for baseline dev config.
+        # Developers can override with a private .env if needed.
+        env_file = ".env.local"
         env_file_encoding = "utf-8"
         case_sensitive = False
 
