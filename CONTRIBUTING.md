@@ -94,6 +94,6 @@ You should **not** put tool logic in this file – keep it in `tools/`.
 docker compose up --build
 ```
 
-- **Backend API**: http://localhost:8000/docs
 - **Frontend**: http://localhost:3000
+- **Health check**: http://localhost:8000/health
 - **Voice agent** connects to LiveKit Cloud automatically.
