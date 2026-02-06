@@ -20,9 +20,7 @@ services:
       - ./backend/.env
     volumes:
       - ./backend/src:/app/src
-    command: ["python", "-m", "src.agents.voice_agent", "dev"]
-    depends_on:
-      - backend
+    command: ["python", "-m", "src.agent", "dev"]
 
   frontend:
     build:

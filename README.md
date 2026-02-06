@@ -8,9 +8,8 @@ Real-time voice AI assistant for medical consultations, powered by LiveKit and O
 docker compose up --build
 ```
 
-- **API**: http://localhost:8000
-- **Docs**: http://localhost:8000/docs
 - **Frontend**: http://localhost:3000
+- **Health check**: http://localhost:8000/health
 
 ## Setup
 
@@ -28,20 +27,21 @@ docker compose up --build
 
 ## Project structure
 
-| Path | Purpose |
-|------|---------|
-| `backend/src/agents/voice_agent.py` | Agent entrypoint – composes tool mixins into one agent |
-| `backend/src/tools/notes.py` | Tool: save/retrieve clinical notes |
-| `backend/src/tools/scribe.py` | Tool: transcription and summarisation |
-| `backend/src/tools/clarifications.py` | Tool: clarification questions for clinicians |
-| `backend/src/tools/actions.py` | Tool: draft letters, order tests, referrals |
-| `backend/src/tools/appointments.py` | Tool: scheduling and waiting list |
-| `backend/src/prompts/system.py` | System prompt / agent persona |
-| `backend/src/integrations/livekit.py` | LiveKit API client and token generation |
-| `backend/src/api/v1/livekit.py` | Token endpoint for frontend to join rooms |
-| `backend/src/api/v1/health.py` | Health check endpoint |
-| `backend/src/core/config.py` | Settings loaded from `.env` |
-| `frontend/agent-starter-react/` | React frontend (LiveKit agent starter) |
+```
+backend/src/
+  agent.py            # Voice agent entrypoint – composes tool mixins
+  prompts.py          # System prompt / agent persona
+  config.py           # Settings from .env
+  main.py             # Lightweight FastAPI health check
+  tools/
+    notes.py          # Tool: save/retrieve clinical notes
+    scribe.py         # Tool: transcription & summarisation
+    clarifications.py # Tool: clarification questions for clinicians
+    actions.py        # Tool: draft letters, order tests, referrals
+    appointments.py   # Tool: scheduling & waiting list
+
+frontend/agent-starter-react/  # React frontend (LiveKit agent starter)
+```
 
 ## Contributing
 

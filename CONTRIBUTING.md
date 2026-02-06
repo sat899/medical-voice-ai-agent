@@ -60,7 +60,7 @@ edit anyone else's file.
 
 ---
 
-### `prompts/system.py` – System Prompt
+### `prompts.py` – System Prompt
 
 | Task | Description |
 |------|-------------|
@@ -69,7 +69,7 @@ edit anyone else's file.
 
 ---
 
-### `agents/voice_agent.py` – Agent Entrypoint
+### `agent.py` – Agent Entrypoint
 
 | Task | Description |
 |------|-------------|
@@ -84,8 +84,8 @@ You should **not** put tool logic in this file – keep it in `tools/`.
 
 1. Create a new file in `backend/src/tools/`, e.g. `tools/my_feature.py`.
 2. Define a mixin class with `@function_tool` methods.
-3. Import it in `agents/voice_agent.py` and add it to `MedicalVoiceAgent`'s base classes.
-4. Update `prompts/system.py` to mention the new capabilities.
+3. Import it in `agent.py` and add it to `MedicalVoiceAgent`'s base classes.
+4. Update `prompts.py` to mention the new capabilities.
 5. Test by running `docker compose up --build`.
 
 ## Running Locally

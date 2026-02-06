@@ -15,8 +15,6 @@ class Settings(BaseSettings):
     livekit_url: str = "wss://localhost:7880"
     livekit_api_key: str = "devkey"
     livekit_api_secret: str = "secret"
-    # URL returned to frontend (defaults to livekit_url if unset)
-    livekit_public_url: str | None = None
 
 
 @lru_cache

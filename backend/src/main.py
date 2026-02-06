@@ -1,16 +1,15 @@
+"""
+Lightweight FastAPI app – health check only.
+
+The real work happens in agent.py (the LiveKit voice agent).
+This exists so docker compose can expose a health endpoint for monitoring.
+"""
+
 from fastapi import FastAPI
 
-from src.api.routes import router as api_router
+app = FastAPI(title="Medical Voice AI Agent", version="0.1.0")
 
 
-def create_app() -> FastAPI:
-    app = FastAPI(
-        title="Medical Voice AI Agent",
-        version="0.1.0",
-        description="Voice AI agent backend – LiveKit token endpoint and health check.",
-    )
-    app.include_router(api_router, prefix="/api")
-    return app
-
-
-app = create_app()
+@app.get("/health")
+async def health():
+    return {"status": "ok"}

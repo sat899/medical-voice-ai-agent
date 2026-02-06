@@ -1,11 +1,11 @@
 """
 LiveKit Voice Agent – Medical AI Assistant.
 
-Run standalone:
+Run:
     cd backend
-    python -m src.agents.voice_agent dev
+    python -m src.agent dev
 
-It will connect to LiveKit Cloud using the env vars in .env
+Connects to LiveKit Cloud using env vars in .env
 (LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET, OPENAI_API_KEY).
 """
 
@@ -21,15 +21,12 @@ from livekit.agents import (
 )
 from livekit.plugins import openai, noise_cancellation
 
-# Tools – each file is owned by a different team member
 from src.tools.notes import NoteTools
 from src.tools.scribe import ScribeTools
 from src.tools.clarifications import ClarificationTools
 from src.tools.actions import ActionTools
 from src.tools.appointments import AppointmentTools
-
-# System prompt
-from src.prompts.system import SYSTEM_INSTRUCTIONS
+from src.prompts import SYSTEM_INSTRUCTIONS
 
 load_dotenv(".env")
 
