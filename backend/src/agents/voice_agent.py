@@ -19,42 +19,33 @@ from livekit.agents import (
     JobContext,
     room_io,
 )
-from livekit.agents.llm import function_tool
 from livekit.plugins import openai, noise_cancellation
+
+# Tools – each file is owned by a different team member
+from src.tools.notes import NoteTools
+from src.tools.scribe import ScribeTools
+from src.tools.clarifications import ClarificationTools
+from src.tools.actions import ActionTools
+from src.tools.appointments import AppointmentTools
+
+# System prompt
+from src.prompts.system import SYSTEM_INSTRUCTIONS
 
 load_dotenv(".env")
 
-# Simple in-memory storage for consultation notes
-memory: dict[int, str] = {}
 
-
-class MedicalVoiceAgent(Agent):
-    """Voice-first medical assistant that can remember notes from consultations."""
+class MedicalVoiceAgent(
+    NoteTools,
+    ScribeTools,
+    ClarificationTools,
+    ActionTools,
+    AppointmentTools,
+    Agent,
+):
+    """Voice-first medical assistant composed from tool mixins."""
 
     def __init__(self) -> None:
-        super().__init__(
-            instructions=(
-                "You are a helpful medical AI assistant communicating via voice. "
-                "Keep your responses concise and conversational. "
-                "You can remember notes from consultations using the save_note tool. "
-                "When asked to recall information, use the get_notes tool. "
-                "Do not provide definitive diagnoses – you are a support tool for clinicians."
-            ),
-        )
-
-    @function_tool
-    async def save_note(self, note: str) -> str:
-        """Save a clinical note to memory. Use when the user asks you to remember something."""
-        note_id = len(memory) + 1
-        memory[note_id] = note
-        return f"Saved note #{note_id}: {note}"
-
-    @function_tool
-    async def get_notes(self) -> str:
-        """Retrieve all saved notes. Use when the user asks what you've remembered."""
-        if not memory:
-            return "No notes saved yet."
-        return "\n".join([f"#{nid}: {note}" for nid, note in memory.items()])
+        super().__init__(instructions=SYSTEM_INSTRUCTIONS)
 
 
 server = AgentServer()
