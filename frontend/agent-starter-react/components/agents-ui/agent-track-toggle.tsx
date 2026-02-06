@@ -135,7 +135,11 @@ export function AgentTrackToggle({
       )}
       {...props}
     >
-      <IconComponent className={cn(pending && 'animate-spin')} />
+      {IconComponent === Fragment ? (
+        <IconComponent />
+      ) : (
+        <IconComponent className={cn(pending && 'animate-spin')} />
+      )}
       {props.children}
     </Toggle>
   );

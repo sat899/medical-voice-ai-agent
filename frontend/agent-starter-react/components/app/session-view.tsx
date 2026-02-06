@@ -7,7 +7,6 @@ import type { AppConfig } from '@/app-config';
 import { AgentAudioVisualizerBar } from '@/components/agents-ui/agent-audio-visualizer-bar';
 import { AgentDisconnectButton } from '@/components/agents-ui/agent-disconnect-button';
 import { AgentTrackToggle } from '@/components/agents-ui/agent-track-toggle';
-import { Track } from 'livekit-client';
 import { Shimmer } from '../ai-elements/shimmer';
 
 const MotionDiv = motion.create('div');
@@ -108,7 +107,7 @@ export const SessionView = ({
         {/* Bottom: controls */}
         <div className="flex flex-row items-center gap-3 pb-8">
           <AgentTrackToggle
-            trackSource={Track.Source.Microphone}
+            source="microphone"
             className="dawn-control-btn rounded-full"
           />
           <AgentDisconnectButton
