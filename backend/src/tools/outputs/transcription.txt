@@ -1,0 +1,7 @@
+Patient: 56-year-old male presenting with chest discomfort for past 3 days. Denies radiation to arms or jaw. Associated with mild shortness of breath on exertion. No fever. Patient reports stress at work lately. 
+
+Doctor: Any history of hypertension or diabetes?
+
+Patient: Yes, hypertension for 10 years, controlled on amlodipine. No diabetes. Family history significant for MI in father at age 65.
+
+Doctor: Examination shows BP 140/88, HR 78, RR 16, O2 sat 98% on room air. Chest clear to auscultation. No peripheral edema. Assessment: Chest pain, likely musculoskeletal or stress-related given examination findings and presentation, but need to exclude cardiac etiology given risk factors.

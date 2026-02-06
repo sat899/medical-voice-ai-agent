@@ -7,6 +7,7 @@ such as drafting letters, ordering tests, and making referrals.
 """
 
 from livekit.agents.llm import function_tool
+from src.services.claude_consultation import draft_letter as draft_letter_service
 
 
 class ActionTools:
@@ -21,8 +22,16 @@ class ActionTools:
             summary: A short summary of the consultation.
             recipient: Who the letter is addressed to (e.g. GP, specialist).
         """
-        # TODO: Implement – generate a letter via LLM with structured template.
-        return f"[Placeholder] Letter to {recipient} drafted from summary."
+        try:
+            letter = draft_letter_service(
+                transcription=summary,
+                doctor_next_steps=f"Destination: {recipient}",
+                patient_name="Patient",
+                consultant_name="Dr. [Name]"
+            )
+            return letter
+        except Exception as e:
+            return f"[Error drafting letter] {str(e)}"
 
     @function_tool
     async def order_tests(self, tests: str) -> str:
