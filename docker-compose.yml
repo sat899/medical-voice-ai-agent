@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: medical-backend
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+psycopg2://app:app@db:5432/app
+    volumes:
+      - ./backend/src:/app/src
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+  frontend:
+    image: nginx:alpine
+    container_name: medical-frontend
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:16-alpine
+    container_name: medical-db
+    environment:
+      - POSTGRES_DB=app
+      - POSTGRES_USER=app
+      - POSTGRES_PASSWORD=app
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+
