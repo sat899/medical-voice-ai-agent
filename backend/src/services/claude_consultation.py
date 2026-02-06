@@ -12,8 +12,12 @@ from datetime import datetime
 import anthropic
 
 
-# Initialize Claude client with API key from environment
-client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+def _get_client() -> anthropic.Anthropic:
+    """Lazy-initialise the Anthropic client (avoids import-time crashes)."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise RuntimeError("ANTHROPIC_API_KEY is not set")
+    return anthropic.Anthropic(api_key=api_key)
 
 TRANSCRIPTION_PATH = Path(__file__).parent / "outputs" / "transcription.txt"
 TEMPLATE_PATH = Path(__file__).parent / "templates" / "consultation_letter.md"
@@ -31,7 +35,7 @@ def generate_next_steps_prompt(transcription: str) -> str:
     Use Claude to analyze the transcription and generate a prompt 
     asking the doctor about recommended next steps.
     """
-    message = client.messages.create(
+    message = _get_client().messages.create(
         model="claude-3-5-sonnet-20241022",
         max_tokens=1024,
         messages=[
@@ -63,8 +67,9 @@ def draft_letter(transcription: str, doctor_next_steps: str, patient_name: str =
     and the doctor's confirmed next steps.
     """
     template = TEMPLATE_PATH.read_text(encoding="utf-8") if TEMPLATE_PATH.exists() else None
-    
-    message = client.messages.create(
+    template_section = f"Template Format:\n{template}" if template else ""
+
+    message = _get_client().messages.create(
         model="claude-3-5-sonnet-20241022",
         max_tokens=2048,
         messages=[
@@ -84,7 +89,7 @@ Patient Name: {patient_name}
 Consultant Name: {consultant_name}
 Date: {datetime.now().strftime("%d %B %Y")}
 
-{'Template Format:\n' + template if template else ''}
+{template_section}
 
 Please draft a professional clinic letter summarizing:
 1. The reason for visit

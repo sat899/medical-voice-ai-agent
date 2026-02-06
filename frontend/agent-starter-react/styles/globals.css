@@ -122,3 +122,74 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ───── Dawn Design System ───── */
+
+:root {
+  --dawn-accent: oklch(0.78 0.155 65);       /* warm amber / sunrise gold */
+  --dawn-accent-muted: oklch(0.78 0.155 65 / 15%);
+  --dawn-panel-bg: oklch(0.97 0.005 65);     /* very light warm grey */
+}
+
+.dark {
+  --dawn-accent: oklch(0.82 0.14 70);        /* slightly lighter gold in dark mode */
+  --dawn-accent-muted: oklch(0.82 0.14 70 / 12%);
+  --dawn-panel-bg: oklch(0.16 0.005 60);     /* very dark warm grey */
+}
+
+/* Tailwind colour tokens */
+@theme inline {
+  --color-dawn-accent: var(--dawn-accent);
+  --color-dawn-accent-muted: var(--dawn-accent-muted);
+  --color-dawn-panel-bg: var(--dawn-panel-bg);
+}
+
+/* Dawn left panel */
+.dawn-panel {
+  background: var(--dawn-panel-bg);
+}
+
+/* Visualizer ring glow */
+.dawn-visualizer-ring {
+  background: var(--dawn-accent-muted);
+  box-shadow: 0 0 60px var(--dawn-accent-muted), 0 0 120px oklch(0.78 0.1 65 / 6%);
+}
+
+/* Dawn primary button */
+.dawn-button {
+  background: var(--dawn-accent);
+  color: oklch(0.15 0 0);
+  border: none;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: filter 0.2s ease, transform 0.15s ease;
+}
+.dawn-button:hover {
+  filter: brightness(1.08);
+  transform: scale(1.02);
+}
+.dawn-button:active {
+  transform: scale(0.98);
+}
+
+/* Dawn control buttons (mic, etc.) */
+.dawn-control-btn {
+  border: 1px solid var(--dawn-accent-muted);
+}
+.dawn-control-btn:hover {
+  background: var(--dawn-accent-muted);
+}
+
+/* Transcript message area */
+.dawn-transcript {
+  scrollbar-width: thin;
+  scrollbar-color: var(--dawn-accent-muted) transparent;
+}
+.dawn-transcript::-webkit-scrollbar {
+  width: 4px;
+}
+.dawn-transcript::-webkit-scrollbar-thumb {
+  background: var(--dawn-accent-muted);
+  border-radius: 9999px;
+}
